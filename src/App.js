@@ -25,20 +25,81 @@ const initialExpenses = [
 
 function App() {
   const [expenses, setExpenses] = useState(initialExpenses);
+  const [charge, setCharge] = useState("");
+  const [amount, setAmount] = useState("");
+  const [alert, setAlert] = useState({ show: false });
+  const handleCharge = e => {
+    setCharge(e.target.value);
+  };
+  const handleAmount = e => {
+    setAmount(e.target.value);
+  };
+  const handleAlert = ({ type, text }) => {
+    setAlert({ show: true, type, text });
+    setTimeout(() => {
+      setAlert({ show: false });
+    }, 3000);
+  };
+  const handleSubmit = e => {
+    e.preventDefault();
+    if (charge !== "" && amount > 0) {
+      const singleExpense = { id: uuid(), charge, amount };
+      setExpenses([...expenses, singleExpense]);
+      handleAlert({ type: "success", text: "item added" });
+      setCharge("");
+      setAmount("");
+    } else {
+      handleAlert({
+        type: "danger",
+        text:
+          "charge can´t be empty value and amount value has to bigger than zero"
+      });
+    }
+  };
+
+  const clearItems = () => {
+    setExpenses([]);
+    handleAlert({
+      type: "danger",
+      text: "all items deleted"
+    });
+  };
+
+  const handleDelete = id => {
+    let tmpExpenses = expenses.filter(item => item.id !== id);
+    setExpenses(tmpExpenses);
+    handleAlert({
+      type: "danger",
+      text: "item deleted"
+    });
+  };
+
+  const handleEdit = id => {};
 
   return (
     <>
-      <Alert />
-      <h1>Budget Calculator</h1>
+      {alert.show && <Alert type={alert.type} text={alert.text} />}
+      <h1> Budget Calculator </h1>
       <main className="App">
-        <ExpenseForm />
-        <ExpenseList expenses={expenses} />
+        <ExpenseForm
+          charge={charge}
+          amount={amount}
+          handleCharge={handleCharge}
+          handleAmount={handleAmount}
+          handleSubmit={handleSubmit}
+        />
+        <ExpenseList
+          expenses={expenses}
+          clearItems={clearItems}
+          handleDelete={handleDelete}
+          handleEdit={handleEdit}
+        />
       </main>
       <h1>
-        total spending :
+        total spending:
         <span className="total">
           {expenses.reduce((acc, curr) => {
-            return (acc += curr.amount);
+            return (acc += parseInt(curr.amount));
           }, 0)}
           €
         </span>
